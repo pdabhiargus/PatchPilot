@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "treeHash": "REPLACE_WITH_HASH_OF_ACTUAL_SCANNED_CHECKOUT",
+  "scope": "project=api;branch=main;profile=approved-v1;exclusions=approved-v1",
+  "sources": [
+    "sonarqube"
+  ],
+  "complete": false,
+  "policyGatePassed": false,
+  "completedAt": "2000-01-01T00:00:00Z",
+  "findings": []
+}

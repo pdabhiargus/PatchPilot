@@ -1,0 +1,24 @@
+# Pipeline for THIS GitHub repository. Publish trusted binaries for your Bitbucket pipelines.
+trigger:
+  branches:
+    include: [main]
+pr:
+  branches:
+    include: [main]
+pool:
+  vmImage: ubuntu-latest
+steps:
+  - checkout: self
+    persistCredentials: false
+  - task: UseDotNet@2
+    inputs:
+      packageType: sdk
+      version: 10.0.x
+  - script: dotnet build tests/PatchPilot.Tests/PatchPilot.Tests.csproj -c Release
+    displayName: Build PatchPilot
+  - script: dotnet run --project tests/PatchPilot.Tests -c Release --no-build
+    displayName: Security regression suite
+  - script: dotnet publish src/PatchPilot/PatchPilot.csproj -c Release -o "$(Build.ArtifactStagingDirectory)/patchpilot"
+    displayName: Publish agent binaries
+  - publish: $(Build.ArtifactStagingDirectory)/patchpilot
+    artifact: patchpilot

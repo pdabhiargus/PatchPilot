@@ -1,0 +1,23 @@
+# Run in a SEPARATE fresh protected job with checkout: none.
+# Download patchpilot-validated from the current successful trusted run and
+# download the same trusted agent build + profile. Never download arbitrary PR artifacts.
+parameters:
+  - name: agentDll
+    type: string
+  - name: profile
+    type: string
+  - name: bundle
+    type: string
+steps:
+  - bash: |
+      set -euo pipefail
+      dotnet "$AGENT" publish "$PROFILE" "$BUNDLE"
+    displayName: Publish signed files and create Bitbucket PR
+    env:
+      AGENT: ${{ parameters.agentDll }}
+      PROFILE: ${{ parameters.profile }}
+      BUNDLE: ${{ parameters.bundle }}
+      PP_ATTESTATION_KEY: $(PP_ATTESTATION_KEY)
+      PP_BITBUCKET_TOKEN: $(PP_BITBUCKET_TOKEN)
+      PP_BITBUCKET_USER: $(PP_BITBUCKET_USER)
+      PP_PUBLISH: 'true'

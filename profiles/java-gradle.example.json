@@ -1,0 +1,32 @@
+{
+  "repository": "your-workspace/java-api",
+  "destination": "main",
+  "contextFiles": [
+    "src/main/java/example/Service.java",
+    "src/test/java/example/ServiceTest.java"
+  ],
+  "editableFiles": [
+    "src/main/java/example/Service.java",
+    "src/test/java/example/ServiceTest.java"
+  ],
+  "lowRiskRules": [],
+  "sensitivePaths": [
+    "src/main/java/example/auth/",
+    "src/main/java/example/security/"
+  ],
+  "maxFiles": 3,
+  "maxChangedCharacters": 8000,
+  "checks": [
+    {
+      "image": "your-approved-registry/gradle-validation@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "args": [
+        "./gradlew",
+        "--no-daemon",
+        "--offline",
+        "build"
+      ],
+      "timeoutSeconds": 900,
+      "network": "none"
+    }
+  ]
+}

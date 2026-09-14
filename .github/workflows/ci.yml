@@ -1,0 +1,28 @@
+name: PatchPilot CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: patchpilot-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build with warnings as errors
+        run: dotnet build tests/PatchPilot.Tests/PatchPilot.Tests.csproj -c Release
+      - name: Run security regression suite
+        run: dotnet run --project tests/PatchPilot.Tests -c Release --no-build
+      - name: Check CLI entrypoint
+        run: dotnet run --project src/PatchPilot -c Release --no-build -- help

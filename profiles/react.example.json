@@ -1,0 +1,53 @@
+{
+  "repository": "your-workspace/react-app",
+  "destination": "main",
+  "contextFiles": [
+    "src/App.tsx",
+    "src/App.test.tsx"
+  ],
+  "editableFiles": [
+    "src/App.tsx",
+    "src/App.test.tsx"
+  ],
+  "lowRiskRules": [],
+  "sensitivePaths": [
+    "src/auth/",
+    "src/security/",
+    "src/payments/"
+  ],
+  "maxFiles": 3,
+  "maxChangedCharacters": 8000,
+  "checks": [
+    {
+      "image": "your-approved-registry/react-validation@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "args": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "timeoutSeconds": 300,
+      "network": "none"
+    },
+    {
+      "image": "your-approved-registry/react-validation@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "args": [
+        "npm",
+        "test",
+        "--",
+        "--run"
+      ],
+      "timeoutSeconds": 600,
+      "network": "none"
+    },
+    {
+      "image": "your-approved-registry/react-validation@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "args": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "timeoutSeconds": 600,
+      "network": "none"
+    }
+  ]
+}
