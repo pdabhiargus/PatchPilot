@@ -1,0 +1,70 @@
+# Trusted steps template, invoked from the existing Bitbucket pipeline.
+# Integration contract: checkout is clean; target scan is complete; artifacts/profile are
+# outside checkout; .NET 10, git and Docker exist. See docs/azure-devops.md.
+parameters:
+  - name: agentDll
+    type: string
+  - name: profile
+    type: string
+  - name: workspace
+    type: string
+  - name: artifacts
+    type: string
+  - name: findingId
+    type: string
+  - name: rescanSteps
+    type: stepList
+    default:
+      - script: |
+          echo "Configure trusted rescanSteps; candidate.scan.json must come from a real completed scan."
+          exit 1
+        displayName: Scanner integration is not configured
+steps:
+  - bash: |
+      set -euo pipefail
+      dotnet "$AGENT" baseline "$PROFILE" "$WORKSPACE" "$OUTPUT/baseline.scan.json" "$OUTPUT/baseline.json"
+    displayName: Validate baseline in restricted containers
+    env:
+      AGENT: ${{ parameters.agentDll }}
+      PROFILE: ${{ parameters.profile }}
+      WORKSPACE: ${{ parameters.workspace }}
+      OUTPUT: ${{ parameters.artifacts }}
+  - bash: |
+      set -euo pipefail
+      dotnet "$AGENT" plan "$PROFILE" "$WORKSPACE" "$OUTPUT/findings.json" "$FINDING" "$OUTPUT/plan.json"
+    displayName: Propose a bounded change
+    env:
+      AGENT: ${{ parameters.agentDll }}
+      PROFILE: ${{ parameters.profile }}
+      WORKSPACE: ${{ parameters.workspace }}
+      OUTPUT: ${{ parameters.artifacts }}
+      FINDING: ${{ parameters.findingId }}
+      PP_AI_ENDPOINT: $(PP_AI_ENDPOINT)
+      PP_AI_MODEL: $(PP_AI_MODEL)
+      PP_AI_TOKEN: $(PP_AI_TOKEN)
+      PP_ALLOW_SOURCE_UPLOAD: $(PP_ALLOW_SOURCE_UPLOAD)
+  - bash: |
+      set -euo pipefail
+      dotnet "$AGENT" apply "$PROFILE" "$WORKSPACE" "$OUTPUT/plan.json"
+    displayName: Apply only policy-eligible changes
+    env:
+      AGENT: ${{ parameters.agentDll }}
+      PROFILE: ${{ parameters.profile }}
+      WORKSPACE: ${{ parameters.workspace }}
+      OUTPUT: ${{ parameters.artifacts }}
+      PP_APPLY: 'true'
+  - ${{ each step in parameters.rescanSteps }}:
+      - ${{ step }}
+  - bash: |
+      set -euo pipefail
+      dotnet "$AGENT" verify "$PROFILE" "$WORKSPACE" "$OUTPUT/plan.json" "$OUTPUT/baseline.json" "$OUTPUT/candidate.scan.json" "$OUTPUT/bundle.json"
+    displayName: Revalidate and sign publication bundle
+    env:
+      AGENT: ${{ parameters.agentDll }}
+      PROFILE: ${{ parameters.profile }}
+      WORKSPACE: ${{ parameters.workspace }}
+      OUTPUT: ${{ parameters.artifacts }}
+      PP_ATTESTATION_KEY: $(PP_ATTESTATION_KEY)
+      PP_BUILD_URL: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)
+  - publish: ${{ parameters.artifacts }}/bundle.json
+    artifact: patchpilot-validated

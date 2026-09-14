@@ -1,0 +1,13 @@
+[
+  {
+    "id": "example-issue",
+    "source": "sonarqube",
+    "rule": "java:S2095",
+    "kind": "BUG",
+    "severity": "MAJOR",
+    "message": "Example only: close the resource using the repository's established pattern.",
+    "paths": [
+      "src/main/java/example/Service.java"
+    ]
+  }
+]
